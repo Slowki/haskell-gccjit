@@ -7,10 +7,6 @@ import Compiler.GCC.JIT
 import Foreign.Ptr
 import Foreign.C.Types
 
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
-import Data.Maybe
-
 type FnType = CInt -> IO CInt
 foreign import ccall "dynamic"
   mkFun :: FunPtr FnType -> FnType
