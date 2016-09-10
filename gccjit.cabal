@@ -1,0 +1,33 @@
+name: gccjit
+version: 0.1.1
+cabal-version: >=1.10
+build-type: Simple
+license: MIT
+license-file: LICENSE
+maintainer: stephan@wolski.co
+synopsis: A GCC JIT library for Haskell
+category: Compiler
+author: Stephan Wolski
+
+flag debug
+    description: For debugging
+    default: False
+
+library
+    exposed-modules:
+        Compiler.GCC.JIT
+        Compiler.GCC.JIT.Foreign
+        Compiler.GCC.JIT.Monad
+    build-tools: c2hs -any
+    build-depends:
+        base -any,
+        bytestring -any,
+        mtl -any,
+        transformers -any
+    default-language: Haskell2010
+    includes:
+        libgccjit.h
+    extra-libraries: gccjit
+    hs-source-dirs: src
+    if flag(debug)
+        cc-options: -g
