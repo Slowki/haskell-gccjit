@@ -13,12 +13,14 @@ foreign import ccall "dynamic"
 
 createCode :: JIT ()
 createCode = do
+    setContextBoolOption JitDumpGeneratedCode True
+
     intType <- getType JitInt
     paramI <- param Nothing intType "i"
     func <- function Nothing JitFunctionExported intType "square" [paramI] False
     block <- block func Nothing
     expr <- paramAsRValue paramI >>= \rv -> binaryOp Nothing JitOpMult intType rv rv
-    blockEndWithReturn block Nothing expr
+    endWithReturn block Nothing expr
     return ()
 
 main :: IO ()
