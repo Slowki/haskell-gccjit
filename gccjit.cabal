@@ -22,6 +22,7 @@ library
         Compiler.GCC.JIT.Foreign.Types
         Compiler.GCC.JIT.Foreign.Expression
         Compiler.GCC.JIT.Foreign.Context
+        Compiler.GCC.JIT.Foreign.Block
     build-tools: c2hs -any
     build-depends:
         base -any,
