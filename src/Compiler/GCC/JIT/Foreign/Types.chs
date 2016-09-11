@@ -18,6 +18,7 @@ import Foreign.Ptr
 import Foreign.Marshal.Array
 
 import Data.ByteString (ByteString, useAsCString)
+import Data.ByteString.Unsafe (unsafePackCString)
 import Data.Maybe (fromMaybe, isJust, fromJust)
 
 -- * Type Enums
@@ -84,7 +85,16 @@ import Data.Maybe (fromMaybe, isJust, fromJust)
 {#pointer *gcc_jit_case as JITCase newtype#}
 #endif
 
--- * Location functions
+-- * Object Functions
+-- | gcc_jit_object_get_context
+objectGetContext :: JITObject -> IO JITContext
+objectGetContext = {#call unsafe gcc_jit_object_get_context#}
+
+-- | gcc_jit_object_get_debug_string, the resulting 'ByteString' will have the same lifetime as the 'JITObject' it was created from
+objectGetDebugString :: JITObject -> IO ByteString
+objectGetDebugString o = {#call unsafe gcc_jit_object_get_debug_string#} o >>= unsafePackCString
+
+-- * Location Functions
 -- | gcc_jit_context_new_location
 contextNewLocation :: JITContext -> ByteString -> Int -> Int -> IO JITLocation
 contextNewLocation c b l c' = useAsCString b $ \cs -> {#call unsafe gcc_jit_context_new_location#} c cs (fromIntegral l) (fromIntegral c')
