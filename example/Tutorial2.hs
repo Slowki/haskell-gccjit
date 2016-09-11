@@ -9,7 +9,7 @@ import Foreign.C.Types
 
 type FnType = CInt -> IO CInt
 foreign import ccall "dynamic"
-  mkFun :: FunPtr FnType -> FnType
+    mkFun :: FunPtr FnType -> FnType
 
 createCode :: JIT ()
 createCode = do

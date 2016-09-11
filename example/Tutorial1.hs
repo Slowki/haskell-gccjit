@@ -11,7 +11,7 @@ import Data.ByteString (useAsCString)
 
 type FnType = Ptr CChar -> IO ()
 foreign import ccall "dynamic"
-  mkFun :: FunPtr FnType -> FnType
+    mkFun :: FunPtr FnType -> FnType
 
 createCode :: JIT ()
 createCode = do
