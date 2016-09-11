@@ -84,9 +84,17 @@ contextCompile = {#call unsafe gcc_jit_context_compile#}
 resultGetCode :: JITResult -> ByteString -> IO (FunPtr a)
 resultGetCode r n = castPtrToFunPtr <$> (useAsCString n $ {#call unsafe gcc_jit_result_get_code#} r)
 
+-- | gcc_jit_result_get_global
+resultGetGlobal :: JITResult -> ByteString -> IO (Ptr a)
+resultGetGlobal r n = castPtr <$> (useAsCString n $ {#call unsafe gcc_jit_result_get_global#} r)
+
 -- | gcc_jit_result_release, free the given 'JITResult'
 resultRelease :: JITResult -> IO ()
 resultRelease = {#call unsafe gcc_jit_result_release#}
+
+-- | gcc_jit_context_compile_to_file
+contextCompileToFile :: JITContext -> JITOutputKind -> ByteString -> IO ()
+contextCompileToFile c k fn = useAsCString fn $ {#call unsafe gcc_jit_context_compile_to_file#} c (enumToCInt k)
 
 -- The created C bindings are inserted at the end of the file
 -- * C functions

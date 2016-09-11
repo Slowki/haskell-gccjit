@@ -24,6 +24,10 @@ import Data.Maybe (fromMaybe, isJust, fromJust)
 -- * Type Enums
 -- | gcc_jit_types
 {# enum gcc_jit_types         as JITTypeName     {underscoreToCase} with prefix = "GCC_JIT_TYPE_" add prefix = "JIT" deriving (Eq, Show) #}
+
+-- * Kind enums
+-- | gcc_jit_output_kind
+{# enum gcc_jit_output_kind   as JITOutputKind   {underscoreToCase} with prefix = "GCC_JIT_OUTPUT_KIND" add prefix = "JIT_OUTPUT_" deriving (Eq, Show) #}
 -- | gcc_jit_function_kind
 {# enum gcc_jit_function_kind as JITFunctionKind {underscoreToCase} with prefix = "GCC_" deriving (Eq, Show) #}
 -- | gcc_jit_global_kind
