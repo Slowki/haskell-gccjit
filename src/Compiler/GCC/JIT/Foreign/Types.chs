@@ -1,5 +1,4 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
--- * Types
 module Compiler.GCC.JIT.Foreign.Types where
 
 #include <libgccjit.h>
