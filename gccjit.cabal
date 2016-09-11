@@ -16,9 +16,8 @@ flag debug
 library
     exposed-modules:
         Compiler.GCC.JIT
-        Compiler.GCC.JIT.Foreign
         Compiler.GCC.JIT.Monad
-    other-modules:
+        Compiler.GCC.JIT.Foreign
         Compiler.GCC.JIT.Foreign.Types
         Compiler.GCC.JIT.Foreign.Expression
         Compiler.GCC.JIT.Foreign.Context
