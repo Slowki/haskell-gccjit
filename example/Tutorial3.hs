@@ -1,4 +1,4 @@
--- Haskell version of https://gcc.gnu.org/onlinedocs/jit/intro/tutorial02.html
+-- Haskell version of https://gcc.gnu.org/onlinedocs/jit/intro/tutorial03.html
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
