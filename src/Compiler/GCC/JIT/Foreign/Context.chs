@@ -7,6 +7,9 @@ module Compiler.GCC.JIT.Foreign.Context where
 {#import Compiler.GCC.JIT.Foreign.Types#}
 import Compiler.GCC.JIT.Foreign.Utilities
 
+import Data.ByteString (ByteString, useAsCString)
+import Foreign.Ptr
+
 -- * Context functions
 
 -- | gcc_jit_context_acquire
