@@ -65,6 +65,9 @@ resultGetCode r n = castPtrToFunPtr <$> (useAsCString n $ actual r)
     where
         actual = {#call unsafe gcc_jit_result_get_code#}
 
+resultRelease :: JITResult -> IO ()
+resultRelease = {#call unsafe gcc_jit_result_release#}
+
 -- * Context functions
 
 -- | gcc_jit_context_acquire
@@ -80,8 +83,8 @@ contextRelease :: JITContext -> IO ()
 contextRelease = {#call unsafe gcc_jit_context_release#}
 
 -- | gcc_jit_context_set_int_option
-contextSetIntOption :: JITContext -> JITIntOption -> CInt -> IO ()
-contextSetIntOption c e v = actual c (fromIntegral $ fromEnum e) v
+contextSetIntOption :: JITContext -> JITIntOption -> Int -> IO ()
+contextSetIntOption c e v = actual c (fromIntegral $ fromEnum e) (fromIntegral v)
     where
         actual = {#call unsafe gcc_jit_context_set_int_option#}
 
@@ -136,14 +139,13 @@ _paramAsRValue = {#call unsafe gcc_jit_param_as_rvalue#}
 
 -- * Function functions
 
--- TODO fix all the pointer nonsense in here
 -- | gcc_jit_context_new_function
 contextNewFunction :: JITContext -> Maybe JITLocation -> JITFunctionKind -> JITType -> ByteString -> [JITParam] -> Bool -> IO JITFunction
 contextNewFunction c l k rt n ps isvar = withArray (map extractPointer ps) $
     \ar -> useAsCString n $
         \cs -> actual c (fromMaybe (JITLocation nullPtr) l) (fromIntegral $ fromEnum k) rt cs (fromIntegral $ length ps) (castPtr ar :: Ptr JITParam) (if isvar then 1 else 0)
     where
-        extractPointer (JITParam p) = p --JITParam isn't Storable which means you can't make an array of it, but the pointer it encapsulates is
+        extractPointer (JITParam p) = p --JITParam isn't Storable, but the pointer it encapsulates is
         actual = {#call unsafe gcc_jit_context_new_function#}
 
 -- * Block functions
@@ -155,9 +157,21 @@ functionNewBlock f n = if isJust n
     where
         actual = {#call unsafe gcc_jit_function_new_block#}
 
+-- | gcc_jit_block_add_eval
+blockAddEval :: JITBlock -> Maybe JITLocation -> JITRValue -> IO ()
+blockAddEval b l = actual b (fromMaybe (JITLocation nullPtr) l)
+    where
+        actual = {#call unsafe gcc_jit_block_add_eval#}
+
+-- | gcc_jit_block_end_with_void_return
+blockEndWithVoidReturn :: JITBlock -> Maybe JITLocation -> IO ()
+blockEndWithVoidReturn b l = actual b (fromMaybe (JITLocation nullPtr) l)
+    where
+        actual = {#call unsafe gcc_jit_block_end_with_void_return#}
+
 -- | gcc_jit_block_end_with_return
-_blockEndWithReturn :: JITBlock -> Maybe JITLocation -> JITRValue -> IO ()
-_blockEndWithReturn b l = actual b (fromMaybe (JITLocation nullPtr) l)
+blockEndWithReturn :: JITBlock -> Maybe JITLocation -> JITRValue -> IO ()
+blockEndWithReturn b l = actual b (fromMaybe (JITLocation nullPtr) l)
     where
         actual = {#call unsafe gcc_jit_block_end_with_return#}
 
@@ -165,9 +179,23 @@ _blockEndWithReturn b l = actual b (fromMaybe (JITLocation nullPtr) l)
 
 -- | gcc_jit_context_new_binary_op
 contextNewBinaryOp :: JITContext -> Maybe JITLocation -> JITBinaryOp -> JITType -> JITRValue -> JITRValue -> IO JITRValue
-contextNewBinaryOp f l t = actual f (fromMaybe (JITLocation nullPtr) l) (fromIntegral $ fromEnum t)
+contextNewBinaryOp c l t = actual c (fromMaybe (JITLocation nullPtr) l) (fromIntegral $ fromEnum t)
     where
         actual = {#call unsafe gcc_jit_context_new_binary_op#}
+
+-- | gcc_jit_context_new_call
+contextNewCall :: JITContext -> Maybe JITLocation -> JITFunction -> [JITRValue] -> IO JITRValue
+contextNewCall c l f as = withArray (map extractPointer as) $ \ar -> actual c (fromMaybe (JITLocation nullPtr) l) f (fromIntegral $ length as) (castPtr ar :: Ptr JITRValue)
+    where
+        extractPointer (JITRValue p) = p --JITRValue isn't Storable, but the pointer it encapsulates is
+        actual = {#call unsafe gcc_jit_context_new_call#}
+
+-- * Literal functions
+-- | gcc_jit_context_new_string_literal
+contextNewStringLiteral :: JITContext -> ByteString -> IO JITRValue
+contextNewStringLiteral c s = useAsCString s $ \cs -> actual c cs
+    where
+        actual = {#call unsafe gcc_jit_context_new_string_literal#}
 
 -- The created C bindings are inserted at the end of the file
 -- * C functions
