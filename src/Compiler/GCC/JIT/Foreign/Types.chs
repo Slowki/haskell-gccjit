@@ -147,11 +147,25 @@ contextNewFunction c l k rt n ps isvar = withArray (map extractPointer ps) $
     where
         extractPointer (JITParam p) = p --JITParam isn't Storable, but the pointer it encapsulates is
 
--- * Param Functions
+-- | gcc_jit_context_get_builtin_function
+contextGetBuiltinFunction :: JITContext -> ByteString -> IO JITFunction
+contextGetBuiltinFunction c n = useAsCString n $ {#call unsafe gcc_jit_context_get_builtin_function#} c
+
+-- | gcc_jit_function_as_object
+functionAsObject :: JITFunction -> IO JITObject
+functionAsObject = {#call unsafe gcc_jit_function_as_object#}
+
+-- TODO move to better location
 -- | gcc_jit_param_as_rvalue
 paramAsRValue :: JITParam -> IO JITRValue
 paramAsRValue = {#call unsafe gcc_jit_param_as_rvalue#}
 
+-- TODO move to better location
+-- |  gcc_jit_function_dump_to_dot
+functionDumpToDot :: JITFunction -> ByteString -> IO ()
+functionDumpToDot f fn = useAsCString fn $ {#call unsafe gcc_jit_function_dump_to_dot#} f
+
+-- * Param Functions
 -- | gcc_jit_context_new_param
 contextNewParam :: JITContext -> Maybe JITLocation -> JITType -> ByteString -> IO JITParam
 contextNewParam c l t n = useAsCString n $ \cs -> {#call unsafe gcc_jit_context_new_param#} c (fromMaybeLocation l) t cs
@@ -162,6 +176,14 @@ functionNewBlock :: JITFunction -> Maybe ByteString -> IO JITBlock
 functionNewBlock f n = if isJust n
                            then useAsCString (fromJust n) $ \s -> {#call unsafe gcc_jit_function_new_block#} f s
                            else {#call unsafe gcc_jit_function_new_block#} f nullPtr
+
+-- | gcc_jit_block_as_object
+blockAsObject :: JITBlock -> IO JITObject
+blockAsObject = {#call unsafe gcc_jit_block_as_object#}
+
+-- | gcc_jit_block_get_function
+blockGetFunction :: JITBlock -> IO JITFunction
+blockGetFunction = {#call unsafe gcc_jit_block_get_function#}
 
 -- * RValue Functions
 -- | gcc_jit_rvalue_as_object
@@ -233,7 +255,6 @@ structSetFields s l fs = withArray (map extractPointer fs) $ \ar -> {#call unsaf
 -- | gcc_jit_struct_as_type
 structAsType :: JITStruct -> IO JITType
 structAsType = {#call unsafe gcc_jit_struct_as_type#}
-
 
 -- * Field Functions
 -- | gcc_jit_context_new_field
