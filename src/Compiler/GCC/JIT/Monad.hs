@@ -1,8 +1,9 @@
 module Compiler.GCC.JIT.Monad where
 
-import Compiler.GCC.JIT.Foreign
+import Compiler.GCC.JIT.Foreign hiding (paramAsRValue)
+import qualified Compiler.GCC.JIT.Foreign as F (paramAsRValue)
 
-import Data.ByteString
+import Data.ByteString hiding (null)
 
 import Control.Monad.IO.Class
 import Control.Monad.State
@@ -25,6 +26,9 @@ withContext j f = do
     resultRelease compd
     return r
 
+context :: JIT JITContext
+context = get
+
 setContextBoolOption :: JITBoolOption -> Bool -> JIT ()
 setContextBoolOption o v = get >>= \c -> liftIO $ contextSetBoolOption c o v
 
@@ -35,26 +39,40 @@ setContextIntOption o v = get >>= \c -> liftIO $ contextSetIntOption c o v
 getType :: JITTypeName -> JIT JITType
 getType n = get >>= \c -> liftIO $ contextGetType c n
 
--- * Param functions
-param :: Maybe JITLocation -> JITType -> ByteString -> JIT JITParam
-param l t n = get >>= \c -> liftIO $ contextNewParam c l t n
-
 -- * Function functions
 function :: Maybe JITLocation -> JITFunctionKind -> JITType -> ByteString -> [JITParam] -> Bool -> JIT JITFunction
 function l k t n p v = get >>= \c -> liftIO $ contextNewFunction c l k t n p v
+
+param :: Maybe JITLocation -> JITType -> ByteString -> JIT JITParam
+param l t n = get >>= \c -> liftIO $ contextNewParam c l t n
+
+local :: JITFunction -> Maybe JITLocation -> JITType -> ByteString -> JIT JITLValue
+local f l t n = liftIO $ functionNewLocal f l t n
 
 -- * Expression functions
 binaryOp :: Maybe JITLocation -> JITBinaryOp -> JITType -> JITRValue -> JITRValue -> JIT JITRValue
 binaryOp l b t x y = get >>= \c -> liftIO $ contextNewBinaryOp c l b t x y
 
 paramAsRValue :: JITParam -> JIT JITRValue
-paramAsRValue p = liftIO $ _paramAsRValue p
+paramAsRValue p = liftIO $ F.paramAsRValue p
 
 newCall :: Maybe JITLocation -> JITFunction -> [JITRValue] -> JIT JITRValue
 newCall l f rs = get >>= \c -> liftIO $ contextNewCall c l f rs
 
+newCallPtr :: Maybe JITLocation -> JITRValue -> [JITRValue] -> JIT JITRValue
+newCallPtr l fp rs = get >>= \c -> liftIO $ contextNewCallThroughPtr c l fp rs
+
 stringLiteral :: ByteString -> JIT JITRValue
 stringLiteral b = get >>= \c -> liftIO $ contextNewStringLiteral c b
+
+zero :: JITType -> JIT JITRValue
+zero t = get >>= \c -> liftIO $ contextZero c t
+
+one :: JITType -> JIT JITRValue
+one t = get >>= \c -> liftIO $ contextOne c t
+
+null :: JITType -> JIT JITRValue
+null t = get >>= \c -> liftIO $ contextNull c t
 
 -- * Block functions
 block :: JITFunction -> Maybe ByteString -> JIT JITBlock
@@ -62,6 +80,9 @@ block f n = liftIO $ functionNewBlock f n
 
 addEval :: JITBlock -> Maybe JITLocation -> JITRValue -> JIT ()
 addEval b l r = liftIO $ blockAddEval b l r
+
+addAssignment :: JITBlock -> Maybe JITLocation -> JITRValue -> IO ()
+addAssignment b l v = liftIO $ blockAddEval b l v
 
 endWithVoidReturn :: JITBlock -> Maybe JITLocation -> JIT ()
 endWithVoidReturn b l = liftIO $ blockEndWithVoidReturn b l

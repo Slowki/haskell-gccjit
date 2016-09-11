@@ -65,3 +65,6 @@ resultGetCode r n = castPtrToFunPtr <$> (useAsCString n $ {#call unsafe gcc_jit_
 -- | gcc_jit_result_release, free the given 'JITResult'
 resultRelease :: JITResult -> IO ()
 resultRelease = {#call unsafe gcc_jit_result_release#}
+
+-- The created C bindings are inserted at the end of the file
+-- * C functions

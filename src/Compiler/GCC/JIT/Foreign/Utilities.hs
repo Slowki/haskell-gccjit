@@ -1,15 +1,9 @@
 module Compiler.GCC.JIT.Foreign.Utilities where
 
-import Compiler.GCC.JIT.Foreign.Types
-
 import Foreign.C.Types
 import Foreign.Ptr
 
 import Data.Maybe
-
--- | Convert Nothing to nullPtr
-fromMaybeLocation :: Maybe JITLocation -> JITLocation
-fromMaybeLocation = fromMaybe (JITLocation nullPtr)
 
 -- | Convert enums to their CInt values
 enumToCInt :: Enum a => a -> CInt
