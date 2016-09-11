@@ -22,12 +22,16 @@ blockAddEval b l = {#call unsafe gcc_jit_block_add_eval#} b (fromMaybeLocation l
 -- | gcc_jit_block_add_assignment
 blockAddAssignment :: JITBlock -> Maybe JITLocation -> JITLValue -> JITRValue -> IO ()
 blockAddAssignment b l lv rv = {#call unsafe gcc_jit_block_add_assignment#} b (fromMaybeLocation l) lv rv
+
 -- | gcc_jit_block_add_assignment_op
+blockAddAssignmentOp :: JITBlock -> Maybe JITLocation -> JITLValue -> JITBinaryOp -> JITRValue -> IO ()
+blockAddAssignmentOp b l lv op = {#call unsafe gcc_jit_block_add_assignment_op#} b (fromMaybeLocation l) lv (enumToCInt op)
 
 -- |  gcc_jit_block_add_comment
+blockAddComment :: JITBlock -> Maybe JITLocation -> ByteString -> IO ()
+blockAddComment b l c = useAsCString c $ {#call unsafe gcc_jit_block_add_comment#} b (fromMaybeLocation l)
 
 -- * Block End With Functions
-
 -- | gcc_jit_block_end_with_conditional
 blockEndWithConditional :: JITBlock -> Maybe JITLocation -> JITRValue -> JITBlock -> JITBlock -> IO ()
 blockEndWithConditional b l = {#call unsafe gcc_jit_block_end_with_conditional#} b (fromMaybeLocation l)
