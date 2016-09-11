@@ -22,16 +22,27 @@ blockAddEval b l = {#call unsafe gcc_jit_block_add_eval#} b (fromMaybeLocation l
 -- | gcc_jit_block_add_assignment
 blockAddAssignment :: JITBlock -> Maybe JITLocation -> JITLValue -> JITRValue -> IO ()
 blockAddAssignment b l lv rv = {#call unsafe gcc_jit_block_add_assignment#} b (fromMaybeLocation l) lv rv
+-- | gcc_jit_block_add_assignment_op
+
+-- |  gcc_jit_block_add_comment
 
 -- * Block End With Functions
 
--- | gcc_jit_block_end_with_void_return
-blockEndWithVoidReturn :: JITBlock -> Maybe JITLocation -> IO ()
-blockEndWithVoidReturn b l = {#call unsafe gcc_jit_block_end_with_void_return#} b (fromMaybeLocation l)
+-- | gcc_jit_block_end_with_conditional
+blockEndWithConditional :: JITBlock -> Maybe JITLocation -> JITRValue -> JITBlock -> JITBlock -> IO ()
+blockEndWithConditional b l = {#call unsafe gcc_jit_block_end_with_conditional#} b (fromMaybeLocation l)
+
+-- | gcc_jit_block_end_with_jump
+blockEndWithJump :: JITBlock -> Maybe JITLocation -> JITBlock -> IO ()
+blockEndWithJump b l = {#call unsafe gcc_jit_block_end_with_jump#} b (fromMaybeLocation l)
 
 -- | gcc_jit_block_end_with_return
 blockEndWithReturn :: JITBlock -> Maybe JITLocation -> JITRValue -> IO ()
 blockEndWithReturn b l = {#call unsafe gcc_jit_block_end_with_return#} b (fromMaybeLocation l)
+
+-- | gcc_jit_block_end_with_void_return
+blockEndWithVoidReturn :: JITBlock -> Maybe JITLocation -> IO ()
+blockEndWithVoidReturn b l = {#call unsafe gcc_jit_block_end_with_void_return#} b (fromMaybeLocation l)
 
 #ifdef LIBGCCJIT_HAVE_SWITCH_STATEMENTS
 -- | gcc_jit_block_end_with_switch
