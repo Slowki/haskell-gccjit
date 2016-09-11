@@ -31,6 +31,8 @@ import Data.Maybe (fromMaybe, isJust, fromJust)
 
 -- * Option name enums
 -- | gcc_jit_int_option
+{# enum gcc_jit_str_option    as JITStrOption    {underscoreToCase} with prefix = "GCC_JIT_STR_OPTION" add prefix = "JIT" deriving (Eq, Show) #}
+-- | gcc_jit_int_option
 {# enum gcc_jit_int_option    as JITIntOption    {underscoreToCase} with prefix = "GCC_JIT_INT_OPTION" add prefix = "JIT" deriving (Eq, Show) #}
 -- | gcc_jit_bool_option
 {# enum gcc_jit_bool_option   as JITBoolOption   {underscoreToCase} with prefix = "GCC_JIT_BOOL_OPTION" add prefix = "JIT" deriving (Eq, Show) #}

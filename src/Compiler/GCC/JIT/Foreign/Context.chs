@@ -7,8 +7,11 @@ module Compiler.GCC.JIT.Foreign.Context where
 {#import Compiler.GCC.JIT.Foreign.Types#}
 import Compiler.GCC.JIT.Foreign.Utilities
 
-import Data.ByteString (ByteString, useAsCString)
 import Foreign.Ptr
+import Foreign.C.Types
+
+import Data.ByteString (ByteString, useAsCString, empty)
+import Data.Maybe (fromMaybe)
 
 -- * Context functions
 
@@ -24,11 +27,26 @@ newChildJITContext = {#call unsafe gcc_jit_context_new_child_context#}
 contextRelease :: JITContext -> IO ()
 contextRelease = {#call unsafe gcc_jit_context_release#}
 
--- * Settings functions
+-- * Debugging functions
+-- | gcc_jit_context_dump_to_file
+contextDumpToFile :: JITContext -> ByteString -> Bool -> IO ()
+contextDumpToFile c fn ul = useAsCString fn $ \cs -> {#call unsafe gcc_jit_context_dump_to_file#} c cs (boolToCInt ul)
 
--- | gcc_jit_context_set_int_option
-contextSetIntOption :: JITContext -> JITIntOption -> Int -> IO ()
-contextSetIntOption c e v = {#call unsafe gcc_jit_context_set_int_option#} c (enumToCInt e) (fromIntegral v)
+-- TODO gcc_jit_context_set_logfile
+--contextSetLogfile :: JITContext -> Maybe FilePointer -> Int -> Int -> IO ()
+--contextSetLogfile c fp flgs v = {#call unsafe gcc_jit_context_set_logfile#} c (fromMaybe nullPtr fp) (fromIntegral flgs) (fromIntegral v)
+
+-- | gcc_jit_context_dump_reproducer_to_file
+contextDumpReproducerToFile :: JITContext -> ByteString -> IO ()
+contextDumpReproducerToFile c fn = useAsCString fn $ {#call unsafe gcc_jit_context_dump_reproducer_to_file#} c
+
+-- TODO gcc_jit_context_enable_dump
+
+-- * Settings functions
+-- | gcc_jit_context_set_str_option
+contextSetStrOption :: JITContext -> JITStrOption -> Maybe ByteString -> IO ()
+contextSetStrOption c e (Just v) = useAsCString v $ {#call unsafe gcc_jit_context_set_str_option#} c (enumToCInt e)
+contextSetStrOption c e Nothing = {#call unsafe gcc_jit_context_set_str_option#} c (enumToCInt e) (castPtr nullPtr :: Ptr CChar)
 
 -- | gcc_jit_context_set_bool_option
 contextSetBoolOption :: JITContext -> JITBoolOption -> Bool -> IO ()
@@ -46,10 +64,14 @@ contextUseExternalDriver :: JITContext -> Bool -> IO ()
 contextUseExternalDriver c v = {#call unsafe gcc_jit_context_set_bool_use_external_driver#} c $ boolToCInt v
 #endif
 
+-- | gcc_jit_context_set_int_option
+contextSetIntOption :: JITContext -> JITIntOption -> Int -> IO ()
+contextSetIntOption c e v = {#call unsafe gcc_jit_context_set_int_option#} c (enumToCInt e) (fromIntegral v)
+
 #ifdef LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option
 -- | gcc_jit_context_add_command_line_option
 contextAddCommandLineOption :: JITContext -> ByteString -> IO ()
-contextAddCommandLineOption c b = useAsCString b $ \s -> {#call unsafe gcc_jit_context_add_command_line_option#} c s
+contextAddCommandLineOption c b = useAsCString b $ {#call unsafe gcc_jit_context_add_command_line_option#} c
 #endif
 
 -- * Result functions
