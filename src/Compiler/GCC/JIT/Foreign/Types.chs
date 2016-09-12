@@ -91,6 +91,10 @@ import Data.Maybe (fromMaybe, isJust, fromJust)
 {#pointer *gcc_jit_case as JITCase newtype#}
 #endif
 
+#ifdef LIBGCCJIT_HAVE_TIMING_API
+-- | gcc_jit_timer*, a timer for measuring performance
+{#pointer *gcc_jit_timer as JITTimer newtype#}
+#endif
 -- * Object Functions
 -- | gcc_jit_object_get_context
 objectGetContext :: JITObject -> IO JITContext

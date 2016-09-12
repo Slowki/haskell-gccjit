@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, OverloadedStrings #-}
 module Compiler.GCC.JIT.Foreign.Context where
 
 #include <libgccjit.h>
@@ -12,6 +12,8 @@ import Foreign.C.Types
 
 import Data.ByteString (ByteString, useAsCString, empty)
 import Data.Maybe (fromMaybe)
+
+import System.IO (Handle)
 
 -- * Context functions
 
@@ -32,9 +34,10 @@ contextRelease = {#call unsafe gcc_jit_context_release#}
 contextDumpToFile :: JITContext -> ByteString -> Bool -> IO ()
 contextDumpToFile c fn ul = useAsCString fn $ \cs -> {#call unsafe gcc_jit_context_dump_to_file#} c cs (boolToCInt ul)
 
--- TODO gcc_jit_context_set_logfile
---contextSetLogfile :: JITContext -> Maybe FilePointer -> Int -> Int -> IO ()
---contextSetLogfile c fp flgs v = {#call unsafe gcc_jit_context_set_logfile#} c (fromMaybe nullPtr fp) (fromIntegral flgs) (fromIntegral v)
+-- | gcc_jit_context_set_logfile
+contextSetLogfile :: JITContext -> Maybe Handle -> Int -> Int -> IO ()
+contextSetLogfile c (Just h) flgs v = handleToFile h "w" >>= \fp -> {#call unsafe gcc_jit_context_set_logfile#} c (castPtr fp) (fromIntegral flgs) (fromIntegral v)
+contextSetLogfile c Nothing flgs v  = {#call unsafe gcc_jit_context_set_logfile#} c (castPtr nullPtr) (fromIntegral flgs) (fromIntegral v)
 
 -- | gcc_jit_context_dump_reproducer_to_file
 contextDumpReproducerToFile :: JITContext -> ByteString -> IO ()
