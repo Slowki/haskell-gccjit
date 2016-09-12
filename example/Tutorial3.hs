@@ -7,14 +7,14 @@ import Compiler.GCC.JIT
 import Foreign.Ptr
 import Foreign.C.Types
 
+import Control.Monad.IO.Class (liftIO)
+
 type FnType = CInt -> IO CInt
 foreign import ccall "dynamic"
     mkFun :: FunPtr FnType -> FnType
 
 createCode :: JIT ()
 createCode = do
-    setContextBoolOption JitDumpGeneratedCode True
-
     theType <- getType JitInt
     let returnType = theType
 
@@ -28,13 +28,28 @@ createCode = do
     bLoopBody <- block func $ Just "loop_body"
     bAfterLoop <- block func $ Just "after_loop"
 
+    zero theType >>= addAssignment bInitial Nothing sum'
+    zero theType >>= addAssignment bInitial Nothing i
+    endWithJump bInitial Nothing bLoopCond
 
+    comp <- asRValue i >>= \ri -> asRValue n >>= \rn -> comparison Nothing JitGe ri rn
+    endWithConditional bLoopCond Nothing comp bAfterLoop bLoopBody
+
+    asRValue i >>= \ri -> binaryOp Nothing JitOpMult theType ri ri >>= addAssignmentOp bLoopBody Nothing sum' JitOpPlus
+
+    one theType >>= addAssignmentOp bLoopBody Nothing i JitOpPlus
+
+    endWithJump bLoopBody Nothing bLoopCond
+    asRValue sum' >>= endWithReturn bAfterLoop Nothing
 
     return ()
 
 main :: IO ()
 main = do
-    res <- withContext createCode $ \r -> do
-        fun <- resultGetCode r "loop_test"
-        mkFun fun 10
+    res <- withContext  $ do
+        setBoolOption JitDumpGeneratedCode True
+        createCode
+        withResult $ \r -> do
+            fun <- getCode r "loop_test"
+            liftIO $ mkFun fun 10
     print res

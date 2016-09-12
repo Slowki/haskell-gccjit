@@ -25,8 +25,8 @@ contextNewUnaryOp :: JITContext -> Maybe JITLocation -> JITUnaryOp -> JITType ->
 contextNewUnaryOp c l t = {#call unsafe gcc_jit_context_new_unary_op#} c (fromMaybeLocation l) (enumToCInt t)
 
 -- | gcc_jit_context_new_comparison
-contextNewComparison :: JITContext -> Maybe JITLocation -> JITComparison -> JITType -> JITRValue -> IO JITRValue
-contextNewComparison c l t = {#call unsafe gcc_jit_context_new_unary_op#} c (fromMaybeLocation l) (enumToCInt t)
+contextNewComparison :: JITContext -> Maybe JITLocation -> JITComparison -> JITRValue -> JITRValue -> IO JITRValue
+contextNewComparison c l t = {#call unsafe gcc_jit_context_new_comparison#} c (fromMaybeLocation l) (enumToCInt t)
 
 -- | gcc_jit_context_new_call
 contextNewCall :: JITContext -> Maybe JITLocation -> JITFunction -> [JITRValue] -> IO JITRValue

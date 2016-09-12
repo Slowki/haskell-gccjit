@@ -17,6 +17,14 @@ library
     exposed-modules:
         Compiler.GCC.JIT
         Compiler.GCC.JIT.Monad
+        Compiler.GCC.JIT.Monad.Type
+        Compiler.GCC.JIT.Monad.Types
+        Compiler.GCC.JIT.Monad.Context
+        Compiler.GCC.JIT.Monad.Result
+        Compiler.GCC.JIT.Monad.Block
+        Compiler.GCC.JIT.Monad.Function
+        Compiler.GCC.JIT.Monad.Timer
+        Compiler.GCC.JIT.Monad.Expression
         Compiler.GCC.JIT.Foreign
         Compiler.GCC.JIT.Foreign.Types
         Compiler.GCC.JIT.Foreign.Expression
@@ -24,6 +32,8 @@ library
         Compiler.GCC.JIT.Foreign.Block
         Compiler.GCC.JIT.Foreign.Timer
         Compiler.GCC.JIT.Foreign.Utilities
+    other-modules:
+        Compiler.GCC.JIT.Monad.Utilities
     build-tools: c2hs -any
     build-depends:
         base -any,

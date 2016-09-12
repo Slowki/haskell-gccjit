@@ -8,6 +8,7 @@ import Foreign.Ptr
 import Foreign.C.Types
 
 import Data.ByteString (useAsCString)
+import Control.Monad.IO.Class (liftIO)
 
 type FnType = Ptr CChar -> IO ()
 foreign import ccall "dynamic"
@@ -15,8 +16,6 @@ foreign import ccall "dynamic"
 
 createCode :: JIT ()
 createCode = do
-    setContextBoolOption JitDumpGeneratedCode True
-
     voidType <- getType JitVoid
     constCharPtrType <- getType JitConstCharPtr
     paramName <- param Nothing constCharPtrType "name"
@@ -24,16 +23,19 @@ createCode = do
     paramFormat <- param Nothing constCharPtrType "format"
     printfFunc <- getType JitInt >>= \itype -> function Nothing JitFunctionImported itype "printf" [paramFormat] True
 
-    fmt <- stringLiteral "hello %s\n"
-    rname <- paramAsRValue paramName
+    fmt <- string "hello %s\n"
+    rname <- asRValue paramName
 
     blk <- block func Nothing
-    newCall Nothing printfFunc [fmt, rname] >>= addEval blk Nothing
+    call Nothing printfFunc [fmt, rname] >>= addEval blk Nothing
     endWithVoidReturn blk Nothing
 
     return ()
 
 main :: IO ()
-main = withContext createCode $ \r -> do
-           fun <- resultGetCode r "greet"
-           useAsCString "world" $ \c -> mkFun fun c
+main = withContext $ do
+        setBoolOption JitDumpGeneratedCode True
+        createCode
+        withResult $ \r -> do
+            fun <- getCode r "greet"
+            liftIO $ useAsCString "world" $ \c -> mkFun fun c

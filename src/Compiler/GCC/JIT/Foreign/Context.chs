@@ -22,8 +22,8 @@ contextAquire :: IO JITContext
 contextAquire = {#call unsafe gcc_jit_context_acquire#}
 
 -- | gcc_jit_context_new_child_context
-newChildJITContext :: JITContext -> IO JITContext
-newChildJITContext = {#call unsafe gcc_jit_context_new_child_context#}
+contextNewChildContext :: JITContext -> IO JITContext
+contextNewChildContext = {#call unsafe gcc_jit_context_new_child_context#}
 
 -- | gcc_jit_context_release, free the given 'JITContext' and all associated memory
 contextRelease :: JITContext -> IO ()
@@ -45,7 +45,7 @@ contextDumpReproducerToFile c fn = useAsCString fn $ {#call unsafe gcc_jit_conte
 
 -- TODO gcc_jit_context_enable_dump
 
--- * Settings functions
+-- * Option functions
 -- | gcc_jit_context_set_str_option
 contextSetStrOption :: JITContext -> JITStrOption -> Maybe ByteString -> IO ()
 contextSetStrOption c e (Just v) = useAsCString v $ {#call unsafe gcc_jit_context_set_str_option#} c (enumToCInt e)

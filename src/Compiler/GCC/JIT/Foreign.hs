@@ -1,4 +1,3 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
 module Compiler.GCC.JIT.Foreign (module X) where
 
 import Compiler.GCC.JIT.Foreign.Types as X
