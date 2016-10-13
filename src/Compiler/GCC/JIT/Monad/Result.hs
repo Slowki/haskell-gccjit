@@ -15,7 +15,7 @@ import Control.Monad.IO.Class (liftIO)
 -- * Result functions
 
 -- | Create a result from the current context
-withResult :: (JITResult -> JIT a) -> JIT a
+withResult :: (JITResult -> JITState s a) -> JITState s a
 withResult f = do
     rez <- compile
     ret <- f rez
@@ -23,23 +23,23 @@ withResult f = do
     return ret
 
 -- | Compile the current context and return the result, it is recomend to use 'withResult' instead since you will have to manually free the result from this function with 'releaseResult'
-compile :: JIT JITResult
+compile :: JITState s JITResult
 compile = inContext contextCompile
 
 -- | gcc_jit_result_get_code
 getCode :: JITResult
         -> ByteString -- ^ Function name
-        -> JIT (FunPtr a)
+        -> JITState s (FunPtr a)
 getCode = liftIO2 resultGetCode
 
 -- | gcc_jit_result_get_global
 getGlobal :: JITResult
           -> ByteString -- ^ Global name
-          -> JIT (Ptr a)
+          -> JITState s (Ptr a)
 getGlobal = liftIO2 resultGetGlobal
 
 -- | Compile the current context to a file
 compileToFile :: JITOutputKind -- ^ Output file type
               -> ByteString -- ^ Output file path
-              -> JIT ()
+              -> JITState s ()
 compileToFile = inContext2 contextCompileToFile

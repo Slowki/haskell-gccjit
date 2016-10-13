@@ -10,7 +10,7 @@ import Compiler.GCC.JIT.Foreign.Utilities
 import Foreign.Ptr
 import Foreign.C.Types
 
-import Data.ByteString (ByteString, useAsCString, empty)
+import Data.ByteString (ByteString, useAsCString, packCString, empty)
 import Data.Maybe (fromMaybe)
 
 import System.IO (Handle)
@@ -28,6 +28,15 @@ contextNewChildContext = {#call unsafe gcc_jit_context_new_child_context#}
 -- | gcc_jit_context_release, free the given 'JITContext' and all associated memory
 contextRelease :: JITContext -> IO ()
 contextRelease = {#call unsafe gcc_jit_context_release#}
+-- * Error-handling
+
+-- | gcc_jit_context_get_first_error
+contextGetFirstError :: JITContext -> IO (Maybe ByteString)
+contextGetFirstError c = {#call unsafe gcc_jit_context_get_first_error#} c >>= \s -> if (s == nullPtr) then return Nothing else Just <$> packCString s
+
+-- | gcc_jit_context_get_last_error
+contextGetLastError :: JITContext -> IO (Maybe ByteString)
+contextGetLastError c = {#call unsafe gcc_jit_context_get_last_error#} c >>= \s -> if (s == nullPtr) then return Nothing else Just <$> packCString s
 
 -- * Debugging functions
 -- | gcc_jit_context_dump_to_file

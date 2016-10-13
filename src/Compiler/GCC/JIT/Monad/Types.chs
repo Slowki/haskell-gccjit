@@ -1,8 +1,10 @@
 #include <libgccjit.h>
 
 module Compiler.GCC.JIT.Monad.Types (
+    JITState,
     JIT,
     evalJIT,
+    evalJITState,
     context,
 
     JITTypeName(..),
@@ -44,6 +46,7 @@ module Compiler.GCC.JIT.Monad.Types (
     AsType(..),
     asType,
 
+    location,
     structType,
     opaqueStruct,
     setStructFields,
@@ -68,18 +71,23 @@ import System.IO.Unsafe (unsafePerformIO)
 
 import Control.Monad
 
-type JIT a = StateT JITContext IO a
+type JITState s a = StateT s (StateT JITContext IO) a
 
+type JIT a = JITState () a
 -- | Returns the current context
-context :: JIT JITContext
-context = get
+context :: JITState s JITContext
+context = lift get
 
 -- | Run the JIT monad under the given context
 evalJIT :: JITContext -> JIT a -> IO a
-evalJIT ctx j = fst <$> runStateT j ctx
+evalJIT ctx j = fst <$> runStateT (fst <$> runStateT j ()) ctx
+
+-- | Run the JIT monad under the given context
+evalJITState :: JITContext -> s -> JITState s a -> IO a
+evalJITState ctx s j = fst <$> runStateT (fst <$> runStateT j s) ctx
 
 class AsObject a where
-    asObject :: a -> JIT JITObject
+    asObject :: a -> JITState s JITObject
 
 instance AsObject JITType where
     asObject = liftIO1 typeAsObject
@@ -100,7 +108,7 @@ instance AsObject JITCase where
 #endif
 
 class AsRValue a where
-    asRValue :: a -> JIT JITRValue
+    asRValue :: a -> JITState s JITRValue
 
 instance AsRValue JITParam where
     asRValue = liftIO1 paramAsRValue
@@ -108,7 +116,7 @@ instance AsRValue JITLValue where
     asRValue = liftIO1 lvalueAsRValue
 
 class Releaseable a where
-    release :: a -> JIT ()
+    release :: a -> JITState s ()
 
 #ifdef LIBGCCJIT_HAVE_TIMING_API
 instance Releaseable JITTimer where
@@ -120,7 +128,7 @@ instance Releaseable JITResult where
     release = liftIO1 resultRelease
 
 class AsType a where
-    asType :: a -> JIT JITType
+    asType :: a -> JITState s JITType
 
 instance AsType JITStruct where
     asType = liftIO1 structAsType
@@ -128,29 +136,37 @@ instance AsType JITStruct where
 instance Show JITObject where
     show = unpack . unsafePerformIO . objectGetDebugString --Yeah, I'm a bad person.
 
+-- * Location functions
+-- | create a new location
+location :: ByteString -- ^ File
+         -> Int -- ^ Line
+         -> Int -- ^ Column
+         -> JITState s JITLocation
+location fn l c = context >>= \c' -> liftIO $ contextNewLocation c' fn l c
+
 -- * Struct Functions
 -- | gcc_jit_context_new_struct_type
-structType :: Maybe JITLocation -> ByteString -> [JITField] -> JIT JITStruct
+structType :: Maybe JITLocation -> ByteString -> [JITField] -> JITState s JITStruct
 structType l n fs = context >>= \c -> liftIO $ contextNewStructType c l n fs
 
 -- | gcc_jit_context_new_opaque_struct
-opaqueStruct :: Maybe JITLocation -> ByteString -> JIT JITStruct
+opaqueStruct :: Maybe JITLocation -> ByteString -> JITState s JITStruct
 opaqueStruct l n = context >>= \c -> liftIO $ contextNewOpaqueStruct c l n
 
 -- | gcc_jit_struct_set_fields
-setStructFields :: JITStruct -> Maybe JITLocation -> [JITField] -> JIT ()
+setStructFields :: JITStruct -> Maybe JITLocation -> [JITField] -> JITState s ()
 setStructFields s l fs = liftIO $ structSetFields s l fs
 
 -- * Field Functions
 -- | gcc_jit_context_new_field
-field :: Maybe JITLocation -> JITType -> ByteString -> JIT JITField
+field :: Maybe JITLocation -> JITType -> ByteString -> JITState s JITField
 field l t n = context >>= \c -> liftIO $ contextNewField c l t n
 
 #ifdef LIBGCCJIT_HAVE_SWITCH_STATEMENTS
-case' :: JITRValue -> JITRValue -> JITBlock -> JIT JITCase
+case' :: JITRValue -> JITRValue -> JITBlock -> JITState s JITCase
 case' r r' b = context >>= \c -> liftIO $ contextNewCase c r r' b
 #endif
 
 -- Utilities, reimplemented because of an import cycle
-liftIO1 :: (a -> IO b) -> a -> JIT b
+liftIO1 :: (a -> IO b) -> a -> JITState s b
 liftIO1 f x = liftIO $ f x

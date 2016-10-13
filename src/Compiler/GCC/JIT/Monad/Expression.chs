@@ -12,76 +12,76 @@ import Data.ByteString (ByteString)
 import Control.Monad.IO.Class (liftIO)
 
 -- * Expression functions
-binaryOp :: Maybe JITLocation -> JITBinaryOp -> JITType -> JITRValue -> JITRValue -> JIT JITRValue
+binaryOp :: Maybe JITLocation -> JITBinaryOp -> JITType -> JITRValue -> JITRValue -> JITState s JITRValue
 binaryOp = inContext5 contextNewBinaryOp
 
-unaryOp :: Maybe JITLocation -> JITUnaryOp -> JITType -> JITRValue -> JIT JITRValue
+unaryOp :: Maybe JITLocation -> JITUnaryOp -> JITType -> JITRValue -> JITState s JITRValue
 unaryOp = inContext4 contextNewUnaryOp
 
-comparison :: Maybe JITLocation -> JITComparison -> JITRValue -> JITRValue -> JIT JITRValue
+comparison :: Maybe JITLocation -> JITComparison -> JITRValue -> JITRValue -> JITState s JITRValue
 comparison = inContext4 contextNewComparison
 
-call :: Maybe JITLocation -> JITFunction -> [JITRValue] -> JIT JITRValue
+call :: Maybe JITLocation -> JITFunction -> [JITRValue] -> JITState s JITRValue
 call = inContext3 contextNewCall
 
-callPtr :: Maybe JITLocation -> JITRValue -> [JITRValue] -> JIT JITRValue
+callPtr :: Maybe JITLocation -> JITRValue -> [JITRValue] -> JITState s JITRValue
 callPtr = inContext3 contextNewCallThroughPtr
 
-cast :: Maybe JITLocation -> JITRValue -> JITType -> JIT JITRValue
+cast :: Maybe JITLocation -> JITRValue -> JITType -> JITState s JITRValue
 cast = inContext3 contextNewCast
 
-arrayAccess :: Maybe JITLocation -> JITRValue -> JITRValue -> JIT JITLValue
+arrayAccess :: Maybe JITLocation -> JITRValue -> JITRValue -> JITState s JITLValue
 arrayAccess = inContext3 contextNewArrayAccess
 
 -- * 'JITRValue' functions
 
 #ifdef LIBGCCJIT_HAVE_gcc_jit_rvalue_set_bool_require_tail_call
-setRequireTailCall :: JITRValue -> Bool -> JIT ()
+setRequireTailCall :: JITRValue -> Bool -> JITState s ()
 setRequireTailCall = liftIO2 rvalueSetBoolRequireTailCall
 #endif
 
 -- | gcc_jit_rvalue_get_type
-rvalueGetType :: JITRValue -> JIT JITType
+rvalueGetType :: JITRValue -> JITState s JITType
 rvalueGetType = liftIO1 F.rvalueGetType
 
 -- | gcc_jit_rvalue_dereference
-dereference :: JITRValue -> Maybe JITLocation -> JIT JITLValue
+dereference :: JITRValue -> Maybe JITLocation -> JITState s JITLValue
 dereference = liftIO2 rvalueDereference
 
 -- | gcc_jit_rvalue_access_field
-rvalueAccessField :: JITRValue -> Maybe JITLocation -> JITField -> JIT JITRValue
+rvalueAccessField :: JITRValue -> Maybe JITLocation -> JITField -> JITState s JITRValue
 rvalueAccessField = liftIO3 F.rvalueAccessField
 
 -- | gcc_jit_rvalue_dereference_field
-dereferenceField :: JITRValue -> Maybe JITLocation -> JITField -> JIT JITLValue
+dereferenceField :: JITRValue -> Maybe JITLocation -> JITField -> JITState s JITLValue
 dereferenceField = liftIO3 rvalueDereferenceField
 
 -- * 'JITLValue' functions
 
-lvalueGetAddress :: JITLValue -> Maybe JITLocation -> JIT JITRValue
+lvalueGetAddress :: JITLValue -> Maybe JITLocation -> JITState s JITRValue
 lvalueGetAddress = liftIO2 F.lvalueGetAddress
 
-lvalueAccessField :: JITLValue -> Maybe JITLocation -> JITField -> JIT JITLValue
+lvalueAccessField :: JITLValue -> Maybe JITLocation -> JITField -> JITState s JITLValue
 lvalueAccessField = liftIO3 F.lvalueAccessField
 
 -- * Literal functions
-rvalueFromInt :: JITType -> Int -> JIT JITRValue
+rvalueFromInt :: JITType -> Int -> JITState s JITRValue
 rvalueFromInt = inContext2 contextNewRValueFromInt
 
-rvalueFromLong :: JITType -> Integer -> JIT JITRValue
+rvalueFromLong :: JITType -> Integer -> JITState s JITRValue
 rvalueFromLong = inContext2 contextNewRValueFromLong
 
-rvalueFromDouble :: JITType -> Double -> JIT JITRValue
+rvalueFromDouble :: JITType -> Double -> JITState s JITRValue
 rvalueFromDouble = inContext2 contextNewRValueFromDouble
 
-string :: ByteString -> JIT JITRValue
+string :: ByteString -> JITState s JITRValue
 string = inContext1 contextNewStringLiteral
 
-zero :: JITType -> JIT JITRValue
+zero :: JITType -> JITState s JITRValue
 zero = inContext1 contextZero
 
-one :: JITType -> JIT JITRValue
+one :: JITType -> JITState s JITRValue
 one = inContext1 contextOne
 
-null :: JITType -> JIT JITRValue
+null :: JITType -> JITState s JITRValue
 null = inContext1 contextNull

@@ -15,22 +15,22 @@ import Data.ByteString (ByteString)
 
 import System.IO (Handle)
 
-timer :: JIT JITTimer
+timer :: JITState s JITTimer
 timer = liftIO timerNew
 
-setTimer :: JITTimer -> JIT ()
+setTimer :: JITTimer -> JITState s ()
 setTimer = inContext1 contextSetTimer
 
-getTimer :: JIT JITTimer
+getTimer :: JITState s JITTimer
 getTimer = inContext contextGetTimer
 
-pushTimer :: JITTimer -> ByteString -> JIT ()
+pushTimer :: JITTimer -> ByteString -> JITState s ()
 pushTimer = liftIO2 timerPush
 
-popTimer :: JITTimer -> Maybe ByteString -> JIT ()
+popTimer :: JITTimer -> Maybe ByteString -> JITState s ()
 popTimer = liftIO2 timerPop
 
-printTimer :: JITTimer -> Handle -> JIT ()
+printTimer :: JITTimer -> Handle -> JITState s ()
 printTimer = liftIO2 timerPrint
 
 #endif

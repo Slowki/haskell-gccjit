@@ -17,21 +17,21 @@ function :: Maybe JITLocation
          -> ByteString -- ^ Name
          -> [JITParam] -- ^ Parameters
          -> Bool -- ^ Is variadic
-         -> JIT JITFunction
+         -> JITState s JITFunction
 function l k t n p v = context >>= \c -> liftIO $ contextNewFunction c l k t n p v
 
 getBuiltinFunction :: ByteString -- ^ Builtin function name
-                   -> JIT JITFunction
+                   -> JITState s JITFunction
 getBuiltinFunction = inContext1 contextGetBuiltinFunction
 
-dumpFunctionToDot :: JITFunction -> ByteString -> JIT ()
+dumpFunctionToDot :: JITFunction -> ByteString -> JITState s ()
 dumpFunctionToDot = liftIO2 functionDumpToDot
 
 -- * 'JITParam' functions
 param :: Maybe JITLocation
       -> JITType -- ^ Type
       -> ByteString -- ^ Name
-      -> JIT JITParam
+      -> JITState s JITParam
 param = inContext3 contextNewParam
 
 -- * Variable functions
@@ -40,7 +40,7 @@ local :: JITFunction
       -> Maybe JITLocation
       -> JITType -- ^ Type
       -> ByteString -- ^ Name
-      -> JIT JITLValue
+      -> JITState s JITLValue
 local = liftIO4 functionNewLocal
 
 -- | Create a new global variable
@@ -48,5 +48,5 @@ global :: Maybe JITLocation
        -> JITGlobalKind -- ^ Variable kind
        -> JITType -- ^ Type
        -> ByteString -- ^ Name
-       -> JIT JITLValue
+       -> JITState s JITLValue
 global l k t n = context >>= \c -> liftIO $ contextNewGlobal c l k t n
