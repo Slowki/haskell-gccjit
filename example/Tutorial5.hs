@@ -21,10 +21,6 @@ import System.Exit (exitWith, ExitCode(..))
 
 import Control.Monad (when)
 
-type FnType = CInt -> IO CInt
-foreign import ccall "dynamic"
-    mkFun :: FunPtr FnType -> FnType
-
 data BFCompiler = BFCompiler {
     filename :: String,
     line :: Int,
